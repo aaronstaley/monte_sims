@@ -35,12 +35,11 @@ def test_brownian_motion_metrics():
     returns = monte_carlo.monte_carlo(brownian_motion_test, tries=100000)
 
     # Validate expectation/variance per GBM
-    mean = np.log(np.mean(returns))
+    mean = finance_helpers.average_log_return(returns)
     assert_approx(mean, SPY_MEAN)
 
     # now we look at all the log returns and compute variance on them
-    log_returns = finance_helpers.log_returns(returns)
-    stdev = np.std(log_returns)
+    volatility = finance_helpers.volatility_of_returns(returns)
     assert_approx(stdev, SPY_STDEV)
 
 STOCK_STDEV = 0.5  # stock standard deviation
