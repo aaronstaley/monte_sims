@@ -6,21 +6,19 @@ All returns inputs expected to be a list of floats
 import numpy as np
 
 """apply various option derivates to a set of returns"""
-def apply_covered_call(returns, strike, premium):
+def apply_covered_call(returns, strike):
     """
     Simulate writing a call
 
     If an element in returns exceeds strike, cap returns at strike
-    Append premium (received) to all returns.
 
     Note on taxes:
     * This doesn't correctly handle taxes (yet) as call is short term cap gain,
     * but stock is long term cap loss.
     """
-    return [(value + premium if value < strike else strike + premium)
-            for value in returns]
+    return [min(value, strike) for value in returns]
 
-def apply_protected_put(returns, strike, premium):
+def apply_protected_put(returns, strike):
     """
     Simulate buying a put
 
@@ -30,18 +28,16 @@ def apply_protected_put(returns, strike, premium):
     Taxes are generally correct here for long term/short term, because exercised puts
     have long term gain characteristics
     """
-    return [(value - premium if value > strike else strike - premium)
-            for value in returns]
+    return [max(value, strike) for value in returns]
 
-def apply_collar(returns, min_strike, max_strike, premium=0):
+def apply_collar(returns, min_strike, max_strike):
     """
     Simulate holding a collar on equity.
-    Premium represents premium paid
     """
 
     # only apply the premium once (put side)
-    returns = apply_covered_call(returns, max_strike, premium=0)
-    returns = apply_protected_put(returns, min_strike, premium)
+    returns = apply_covered_call(returns, max_strike)
+    returns = apply_protected_put(returns, min_strike)
     return returns
 
 

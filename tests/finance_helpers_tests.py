@@ -5,11 +5,11 @@ import finance_helpers as fh
 
 def test_options_application():
     returns = range(5)
-    call_ret = fh.apply_covered_call(returns, 3, premium=1.0)
-    assert call_ret == [1, 2, 3, 4, 4]
+    call_ret = fh.apply_covered_call(returns, 3)
+    assert call_ret == [0, 1, 2, 3, 3]
 
-    put_ret = fh.apply_protected_put(returns, 2, premium=1.0)
-    assert put_ret == [1, 1, 1, 2, 3]
+    put_ret = fh.apply_protected_put(returns, 2)
+    assert put_ret == [2, 2, 2, 3, 4]
 
     collar_ret = fh.apply_collar(returns, 1, 3)
     assert collar_ret == [1, 1, 2, 3, 3]
