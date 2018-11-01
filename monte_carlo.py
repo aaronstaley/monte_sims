@@ -2,21 +2,22 @@
 import numpy as np
 import multiprocessing as mp
 
-def monte_carlo_single(func, tries=10000):
+def monte_carlo_single(func, tries=10000, **kwargs):
     """return nd array of every monte carlo result"""
     results = []
     for i in xrange(tries):
-        result = func()
+        result = func(**kwargs)
         results.append(result)
 
     return results
 
-def monte_carlo(func, tries=10000, single_batch_size=100):
+def monte_carlo(func, tries=10000, single_batch_size=100, **kwargs):
     """parallel version of monte_carlo_single"""
     pool = mp.Pool()
     singular_args = (func, single_batch_size)
 
-    future_res = [pool.apply_async(monte_carlo_single, singular_args) for _ in xrange(tries/single_batch_size)]
+    future_res = [pool.apply_async(monte_carlo_single, singular_args, kwargs) for _ in
+                  xrange(tries / single_batch_size)]
     res = []
     for f in future_res:
         res.extend(f.get())

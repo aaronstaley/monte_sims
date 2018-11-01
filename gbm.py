@@ -60,6 +60,12 @@ def multi_generate_brownian_motion(total_time, sim_period, mean, stdev, corr_mat
     X = drift_component + stdev * W
     return np.exp(X)  # geometric
 
+def multi_generate_brownian_motion_single_step(total_time, mean, stdev, corr_matrix, sub_steps=100):
+    """return a single step of brownian motion"""
+    # We use 100 sub steps to minimize probability range (it's akin to running more samples,
+    #  but it is faster to do it this way due to vector math)
 
+    S = multi_generate_brownian_motion(total_time, total_time/float(sub_steps), mean, stdev, corr_matrix)
+    return S[-1]
 
 

@@ -40,7 +40,7 @@ def test_brownian_motion_metrics():
 
     # now we look at all the log returns and compute variance on them
     volatility = finance_helpers.volatility_of_returns(returns)
-    assert_approx(stdev, SPY_STDEV)
+    assert_approx(volatility, SPY_STDEV)
 
 STOCK_STDEV = 0.5  # stock standard deviation
 STOCK_SPY_CORREL = 0.9
@@ -56,10 +56,14 @@ def multi_brownian_motion_test():
 
     corr_matrix = gbm.correl_matrix_from_corr(STOCK_SPY_CORREL)
 
+
     runtime = 1
-    sim_period = 1/1000.0
-    S = gbm.multi_generate_brownian_motion(runtime, sim_period, mean, stdev, corr_matrix)
-    return S[-1]
+    return gbm.multi_generate_brownian_motion_single_step(runtime, mean, stdev, corr_matrix)
+
+    #sim_period = 1/1000.0
+
+    #S = gbm.multi_generate_brownian_motion(runtime, sim_period, mean, stdev, corr_matrix)
+    #return S[-1]
 
 def test_multi_brownian_motion_metrics():
     """Validate multi_generate_brownian_motion sanity"""
