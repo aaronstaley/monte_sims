@@ -68,7 +68,7 @@ def volatility_of_returns(returns):
     lg_rets = log_returns(returns)
     return np.std(lg_rets)
 
-RISK_FREE_RATE = 0.0221 * (0.5) # tax adjusted
+RISK_FREE_RATE = 0.0221 * (0.65) # tax (ltcg) adjusted
 def sharpe_ratio(returns, risk_free_rate = RISK_FREE_RATE):
     """calculate (average) sharpe ratio.
     risk free rate uses 30 day t-bill ratio
