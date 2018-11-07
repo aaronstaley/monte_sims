@@ -28,18 +28,47 @@ class TaxCalculation(object):
 [
         However, as this is AGI, things like 401(k) contributions should already be removed
         """
+        pass
+
+    def calc_tax(self, base_agi, source_agi, income_source):
+        """calculate tax for a given income source.
+        base_agi: What this income source starts at (e.g. LTCG comes after ordinary income)
+        source_agi: AGI from this source. (note AGI is effectively just income from source).
+        income_source: source of this income
+        """
         last_rate = 0
         last_bottom = 0
         tax_so_far = 0
-        agi_remain = agi
-        for bottom, rate in self.bracket[constants.INCOME_ORDINARY]: # TODO: Fix me -- sourcing?
+
+        top_agi = source_agi + base_agi # highest bracket we'll look at
+        base_remain = base_agi
+        agi_remain = top_agi
+
+
+        for bottom, rate in self.bracket[income_source]: # TODO: Fix me -- sourcing?
             assert bottom >= last_bottom, "ordering"
 
-            if bottom > agi:
+            if bottom > source_agi: # partially count tax and move forward
+                assert base_remain < (bottom - last_bottom)
+                agi_consumed = min(agi_remain, (bottom - source_agi)) # actual agi for this income sourcing used
+                tax_so_far += agi_consumed * last_rate
+                agi_remain -= agi_consumed
+                assert agi_remain >= 0
+                base_remain = 0
+
+                last_rate = rate
+                last_bottom = bottom
+                continue
+
+            if bottom > top_agi:
+                assert base_remain == 0
                 tax_so_far += agi_remain * last_rate
                 break
 
-            tax_so_far += (bottom - last_bottom) * last_rate
+            if base_remain > 0:
+                base_remain -= (bottom - last_bottom)
+            else:
+                tax_so_far += (bottom - last_bottom) * last_rate
             agi_remain -= (bottom - last_bottom)
 
             last_rate = rate
