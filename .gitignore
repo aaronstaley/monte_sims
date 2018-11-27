@@ -1,0 +1,19 @@
+*.py[oc]
+
+# test droppings
+.pytest_cache/
+.cache
+.tox
+.hypothesis/
+
+# coverage droppings
+.coverage
+coverage.xml
+coverage_html_report/
+
+# profiling droppings
+stats.dat
+
+# setup.py droppings
+dist
+build/
