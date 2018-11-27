@@ -1,7 +1,6 @@
-import numpy as np
 
-from gbm_test import assert_approx
 import finance_helpers as fh
+
 
 def test_options_application():
     returns = range(5)
