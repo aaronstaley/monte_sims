@@ -1,28 +1,32 @@
 """monte carlo simulation"""
-import numpy as np
 import multiprocessing as mp
+
+from six.moves import range
+
 
 def monte_carlo_single(func, tries=10000, **kwargs):
     """return nd array of every monte carlo result"""
     results = []
-    for i in xrange(tries):
+    for i in range(tries):
         result = func(**kwargs)
         results.append(result)
 
     return results
+
 
 def monte_carlo(func, tries=10000, single_batch_size=100, **kwargs):
     """parallel version of monte_carlo_single"""
     pool = mp.Pool()
     singular_args = (func, single_batch_size)
 
-    future_res = [pool.apply_async(monte_carlo_single, singular_args, kwargs) for _ in
-                  xrange(tries / single_batch_size)]
+    future_res = [pool.apply_async(monte_carlo_single, singular_args, kwargs)
+                  for _ in range(tries / single_batch_size)]
     res = []
     for f in future_res:
         res.extend(f.get())
 
     return res
+
 
 def gv():
     import gbm

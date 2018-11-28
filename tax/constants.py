@@ -7,7 +7,7 @@ FILING_MARRIED = 'filing_married'
 INCOME_ORDINARY = 'income_ordinary'
 INCOME_LTCG = 'income_ltcg'
 INCOME_STCG = 'income_stcg'
-INCOME_INVESTMENT = 'income_investment' # general investment income
+INCOME_INVESTMENT = 'income_investment'  # general investment income
 
 # states
 CA = 'ca'

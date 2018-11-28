@@ -1,12 +1,11 @@
 import numpy as np
 
-import alpha_beta
 import finance_helpers
 import gbm
 import monte_carlo
 
 SPY_MEAN = 0.1  # LOG RETURNs
-SPY_STDEV = 0.16 # stdev of log returns
+SPY_STDEV = 0.16  # stdev of log returns
 
 TEST_EPSILON = 0.01
 
@@ -16,19 +15,23 @@ def brownian_motion_test():
     X = gbm.generate_brownian_motion(1, 1 / 1000.0, SPY_MEAN, SPY_STDEV)
     return X[-1]
 
+
 def assert_approx(test_value, expected_value):
     """assert test_value within TEST_EPSILON of expected_value"""
-    assert expected_value - TEST_EPSILON < test_value < expected_value + TEST_EPSILON
+    lower = expected_value - TEST_EPSILON
+    upper = expected_value + TEST_EPSILON
+    assert lower < test_value < upper
 
 
 def test_simple_brownian_motion_sanity():
     """validate monte carlo sim of brownian motion"""
     runtime = 1
-    sim_period = 1/1000.0
+    sim_period = 1 / 1000.0
 
     S = gbm.generate_brownian_motion(runtime, sim_period, SPY_MEAN, SPY_STDEV)
-    assert len(S) == 1/sim_period
+    assert len(S) == 1 / sim_period
     assert S.ndim == 1
+
 
 def test_brownian_motion_metrics():
     """validate distribution generated conforms to expectations"""
@@ -42,8 +45,10 @@ def test_brownian_motion_metrics():
     volatility = finance_helpers.volatility_of_returns(returns)
     assert_approx(volatility, SPY_STDEV)
 
+
 STOCK_STDEV = 0.5  # stock standard deviation
 STOCK_SPY_CORREL = 0.9
+
 
 def multi_brownian_motion_test():
     """run some correlated brownian motion
@@ -56,14 +61,16 @@ def multi_brownian_motion_test():
 
     corr_matrix = gbm.correl_matrix_from_corr(STOCK_SPY_CORREL)
 
-
     runtime = 1
-    return gbm.multi_generate_brownian_motion_single_step(runtime, mean, stdev, corr_matrix)
+    return gbm.multi_generate_brownian_motion_single_step(
+        runtime, mean, stdev, corr_matrix)
 
-    #sim_period = 1/1000.0
+    # FIXME: don't comment-out; use or delete
+    # sim_period = 1/1000.0
+    # S = gbm.multi_generate_brownian_motion(runtime, sim_period,
+    #                                        mean, stdev, corr_matrix)
+    # return S[-1]
 
-    #S = gbm.multi_generate_brownian_motion(runtime, sim_period, mean, stdev, corr_matrix)
-    #return S[-1]
 
 def test_multi_brownian_motion_metrics():
     """Validate multi_generate_brownian_motion sanity"""
@@ -74,7 +81,7 @@ def test_multi_brownian_motion_metrics():
     assert_approx(spy_mean, SPY_MEAN)
 
     stock_mean = np.log(np.mean(stock_returns))
-    assert_approx(stock_mean, SPY_MEAN) # same returns
+    assert_approx(stock_mean, SPY_MEAN)  # same returns
 
     spy_log_returns = finance_helpers.log_returns(spy_returns)
     stock_log_returns = finance_helpers.log_returns(stock_returns)
@@ -87,7 +94,7 @@ def test_multi_brownian_motion_metrics():
 
     # correlate the returns together
     corr = np.corrcoef(spy_log_returns, stock_log_returns)
-    assert corr.shape == (2,2)
+    assert corr.shape == (2, 2)
     correlation = corr[0][1]
     assert_approx(correlation, corr[1][0])
 

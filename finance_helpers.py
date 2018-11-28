@@ -6,6 +6,8 @@ All returns inputs expected to be a list of floats
 import numpy as np
 
 """apply various option derivates to a set of returns"""
+
+
 def apply_covered_call(returns, strike):
     """
     Simulate writing a call
@@ -18,6 +20,7 @@ def apply_covered_call(returns, strike):
     """
     return [min(value, strike) for value in returns]
 
+
 def apply_protected_put(returns, strike):
     """
     Simulate buying a put
@@ -25,10 +28,11 @@ def apply_protected_put(returns, strike):
     If an element is below strike, hold element at strike.
     Deduct premium paid from all returns.
 
-    Taxes are generally correct here for long term/short term, because exercised puts
-    have long term gain characteristics
+    Taxes are generally correct here for long term/short term, because
+    exercised puts have long term gain characteristics
     """
     return [max(value, strike) for value in returns]
+
 
 def apply_collar(returns, min_strike, max_strike):
     """
@@ -42,14 +46,20 @@ def apply_collar(returns, min_strike, max_strike):
 
 
 def blend_returns(returns1, returns2, blend_factor):
-    """Blend returns1 and returns2 by blend_factor*returns1 + (1-blend_factor)*returns2"""
-    assert 0<=blend_factor<=1
-    return [ret1*blend_factor + ret2*(1-blend_factor) for ret1, ret2 in zip(returns1, returns2)]
+    """Blend returns1 and returns2 by
+
+    blend_factor*returns1 + (1-blend_factor)*returns2
+
+    """
+    assert 0 <= blend_factor <= 1
+    return [ret1 * blend_factor + ret2 * (1 - blend_factor)
+            for ret1, ret2 in zip(returns1, returns2)]
 
 
 """
 Various math operations
 """
+
 
 def average_log_return(returns):
     """
@@ -60,17 +70,24 @@ def average_log_return(returns):
     """
     return np.log(np.mean(returns))
 
+
 def log_returns(returns):
     return np.log(returns)
+
 
 def volatility_of_returns(returns):
     """return volatility of returns"""
     lg_rets = log_returns(returns)
     return np.std(lg_rets)
 
-RISK_FREE_RATE = 0.0221 * (0.65) # tax (ltcg) adjusted
-def sharpe_ratio(returns, risk_free_rate = RISK_FREE_RATE):
-    """calculate (average) sharpe ratio.
+
+RISK_FREE_RATE = 0.0221 * (0.65)  # tax (ltcg) adjusted
+
+
+def sharpe_ratio(returns, risk_free_rate=RISK_FREE_RATE):
+    """
+    calculate (average) sharpe ratio.
     risk free rate uses 30 day t-bill ratio
     """
-    return (average_log_return(returns) - risk_free_rate)/volatility_of_returns(returns)
+    alpha = average_log_return(returns) - risk_free_rate
+    return alpha / volatility_of_returns(returns)

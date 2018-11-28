@@ -1,23 +1,27 @@
 """
-Generate combined brackets (state + federal) that are pre-adjusted by standard deduction
+Generate combined brackets (state + federal) that are pre-adjusted by
+standard deduction
 
 TODO: Figure out how to incorporate itemized deductions
 """
 
-combined = {}  # combined brackets go here. map state->filing_status->income_type
+# combined brackets go here. map state->filing_status->income_type
+combined = {}
 
 import bracket_definitions as bd
 import constants
 import deduction_definitions as dd
 
+
 def iter_bracket(bracket, reverse=False):
     """iterate through brackets in sorted order
     yield base_value, marginal_rate
     """
-    bracket_keys = sorted(bracket.iterkeys(), reverse=reverse)
+    bracket_keys = sorted(bracket.keys(), reverse=reverse)
 
     for bracket_key in bracket_keys:
         yield bracket_key, bracket[bracket_key]
+
 
 def merge_brackets(bracket1, bracket2):
     """merge two brackets and returned a combined bracket
@@ -40,7 +44,7 @@ def merge_brackets(bracket1, bracket2):
     next_b1_key, next_b1_rate = None, None
     next_b2_key, next_b2_key = None, None
 
-    output = [] # list of tuple[key, val]
+    output = []  # list of tuple[key, val]
 
     while True:
         try:
@@ -55,7 +59,7 @@ def merge_brackets(bracket1, bracket2):
             next_b2_key, next_b2_rate = None, None
 
         if next_b1_key is None and next_b2_key is None:
-            break # no more work
+            break  # no more work
 
         # Decide what bracket to push
 
@@ -66,7 +70,8 @@ def merge_brackets(bracket1, bracket2):
             last_b1_rate = next_b1_rate
             last_b2_rate = next_b2_rate
             next_b2_key = next_b1_key = None
-        elif next_b2_key is None or (next_b1_key is not None and next_b1_key < next_b2_key):
+        elif next_b2_key is None or (next_b1_key is not None and
+                                     next_b1_key < next_b2_key):
             # use bracket 1
             new_key = next_b1_key
             new_rate = next_b1_rate + last_b2_rate
@@ -83,15 +88,13 @@ def merge_brackets(bracket1, bracket2):
 
     return output
 
+
 def adjust_bracket(brackets, standard_deduction):
     """generate a new brackets adjusted up by a fixed standard deduction"""
     new_brackets = {
-        bottom + standard_deduction: rate for
-        bottom, rate in
-        brackets.iteritems()
-
+        bottom + standard_deduction: rate for bottom, rate in brackets.items()
     }
-    new_brackets[0] = 0 # simulate deduction
+    new_brackets[0] = 0  # simulate deduction
     return new_brackets
 
 
@@ -99,24 +102,28 @@ def build_combined_bracket():
     """generate and return combined bracket"""
     by_state_combined = {}
 
-    for state, state_filing_dict in bd.state.iteritems():
+    for state, state_filing_dict in bd.state.items():
 
         combined_filing_dict = {}
         assert sorted(bd.federal.keys()) == sorted(state_filing_dict.keys())
-        for filing_status, income_dict in bd.federal.iteritems():
+        for filing_status, income_dict in bd.federal.items():
             state_income_dict = state_filing_dict[filing_status]
 
             combined_income_dict = {}
-            assert sorted(state_income_dict.keys()) == sorted(income_dict.keys())
-            for income_type, income_brackets in income_dict.iteritems():
+            assert set(state_income_dict.keys()) == set(income_dict.keys())
+            for income_type, income_brackets in income_dict.items():
                 state_income_brackets = state_income_dict[income_type]
 
-                income_brackets_with_deduct = adjust_bracket(income_brackets,
-                                                    dd.federal_standard_deduction[filing_status])
-                state_income_brackets_with_deduct = adjust_bracket(state_income_brackets,
-                                                           dd.state_standard_deduction[state][filing_status])
+                income_brackets_with_deduct = adjust_bracket(
+                    income_brackets,
+                    dd.federal_standard_deduction[filing_status])
+                state_income_brackets_with_deduct = adjust_bracket(
+                    state_income_brackets,
+                    dd.state_standard_deduction[state][filing_status])
 
-                combined_bracket = merge_brackets(income_brackets_with_deduct, state_income_brackets_with_deduct)
+                combined_bracket = merge_brackets(
+                    income_brackets_with_deduct,
+                    state_income_brackets_with_deduct)
                 combined_income_dict[income_type] = combined_bracket
 
             combined_filing_dict[filing_status] = combined_income_dict
@@ -124,20 +131,8 @@ def build_combined_bracket():
         by_state_combined[state] = combined_filing_dict
     return by_state_combined
 
+
 combined = build_combined_bracket()
 
 # default bracket for most calculations
 CA_MARRIED = combined[constants.CA][constants.FILING_MARRIED]
-
-
-
-
-
-
-
-
-
-
-
-
-
