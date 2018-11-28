@@ -23,7 +23,7 @@ class TaxCalculation(object):
         """Convert AGI to tax
 
         Our tax brackets already consider standard deduction, so we don't need
-        todo AGI->taxable_income->tax
+        to do AGI->taxable_income->tax
 
         However, as this is AGI, things like 401(k) contributions should
         already be removed
