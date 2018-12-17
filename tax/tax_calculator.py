@@ -19,16 +19,36 @@ class TaxCalculation(object):
         self.filing_status = filing_status
         self.bracket = cb.combined[state][filing_status]
 
-    def agi_to_tax(self, agi):
-        """Convert AGI to tax
+    def compute_tax_from_agi_sources(self, agi_dict):
+        """Compute tax from various sources of AGI
 
-        Our tax brackets already consider standard deduction, so we don't need
-        to do AGI->taxable_income->tax
+        agi_dict is a dictionary mapping an income source (as defined in constants) to
+        an amount.
 
-        However, as this is AGI, things like 401(k) contributions should
-        already be removed
+        Note that dividends are considered either STCG (ordinary) or LTCG (qualified)
+            per purposes of source attribution.
+
+        This will automatically do calculations to use correct blended cap gain rates
         """
-        raise NotImplementedError
+        INCOME_SOURCES = [constants.INCOME_ORDINARY, constants.INCOME_LTCG, constants.INCOME_STCG]
+        for agi_source in agi_dict:
+            assert agi_source in INCOME_SOURCES, "unexpected source %s" % agi_source
+
+        assert constants.INCOME_INVESTMENT not in agi_source, \
+            "investment income determined by STCG and LTCG"
+
+        ordinary_income = agi_dict.get(constants.INCOME_ORDINARY, 0)
+        stcg = agi_dict.get(constants.INCOME_STCG, 0)
+        ltcg = agi_dict.get(constants.INCOME_LTCG, 0)
+
+        tax_so_far = self.calc_tax(0, ordinary_income, constants.INCOME_ORDINARY)
+        tax_so_far += self.calc_tax(ordinary_income, stcg, constants.INCOME_STCG)
+        tax_so_far += self.calc_tax(ordinary_income + stcg, ltcg, constants.INCOME_LTCG)
+
+        # net investment income is STCG + LTCG (after ordinary)
+        tax_so_far += self.calc_tax(ordinary_income, stcg + ltcg, constants.INCOME_INVESTMENT)
+
+        return tax_so_far
 
     def calc_tax(self, base_agi, source_agi, income_source):
         """calculate tax for a given income source.
@@ -66,6 +86,14 @@ class TaxCalculation(object):
 
             last_rate = rate
             last_bottom = bottom
+        else:
+            # reached top bracket -- apply it
+            assert top_agi > bottom, "should not have reached top bracket"
+            assert bottom == last_bottom, "loop not exhausted?"
+
+            income_to_tax = top_agi - max(base_agi, last_bottom)
+            tax_so_far += income_to_tax * last_rate
+
 
         return tax_so_far
 
