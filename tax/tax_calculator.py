@@ -44,40 +44,29 @@ class TaxCalculation(object):
         tax_so_far = 0
 
         top_agi = source_agi + base_agi  # highest bracket we'll look at
-        base_remain = base_agi
-        agi_remain = top_agi
 
         for bottom, rate in self.bracket[income_source]:
-            # TODO: Fix me -- sourcing?
             assert bottom >= last_bottom, "ordering"
 
-            if bottom > source_agi:  # partially count tax and move forward
-                assert base_remain < (bottom - last_bottom)
-                # actual agi for this income sourcing used
-                agi_consumed = min(agi_remain, (bottom - source_agi))
-
-                tax_so_far += agi_consumed * last_rate
-                agi_remain -= agi_consumed
-                assert agi_remain >= 0
-                base_remain = 0
-
-                last_rate = rate
-                last_bottom = bottom
-                continue
-
-            if bottom > top_agi:
-                assert base_remain == 0
-                tax_so_far += agi_remain * last_rate
-                break
-
-            if base_remain > 0:
-                base_remain -= (bottom - last_bottom)
+            if base_agi > last_bottom:
+                if base_agi < bottom:
+                    # income is now being taxed -> partially count it
+                    income_to_tax = min(bottom, top_agi) - base_agi
+                else:
+                    # this bracket is entirely skipped (base is above)
+                    income_to_tax = 0
             else:
-                tax_so_far += (bottom - last_bottom) * last_rate
-            agi_remain -= (bottom - last_bottom)
+                # tax entire bracket (up to limit)
+                income_to_tax = min(bottom, top_agi) - last_bottom
+
+            tax_so_far += income_to_tax * last_rate
+            if top_agi <= bottom:
+                # no need to look at further brackets
+                break
 
             last_rate = rate
             last_bottom = bottom
+
         return tax_so_far
 
 

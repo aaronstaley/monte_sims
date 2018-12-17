@@ -46,7 +46,7 @@ ca_ordinary_married = {
     687567: 0.113,
     1000000: 0.123,
     # mental health tax often not listed in standard brackets;
-    #  doesn't adjust for inflation
+    #  as it doesn't adjust for inflation
     1145960: 0.133
 }
 
